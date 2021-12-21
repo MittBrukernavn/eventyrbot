@@ -1,0 +1,8 @@
+version: '3'
+services:
+  eventyrbot:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./state:/eventyrbot/state
