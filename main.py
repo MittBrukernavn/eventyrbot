@@ -57,7 +57,7 @@ class EventyrBot(discord.Client):
             await message.channel.send(result)
             return
         if message.channel.permissions_for(message.author).administrator:
-            self.on_admin_message(message)
+            await self.on_admin_message(message)
         
     async def on_admin_message(self, message):
         triggered = False
@@ -101,9 +101,9 @@ class EventyrBot(discord.Client):
             is_dice_roll = False
             if not is_raw_int:
                 try:
-                    is_dice_roll = True
                     d_index = current_piece.find('d')
                     if d_index != -1:
+                        is_dice_roll = True
                         dice_count = 1
                         if d_index > 0:
                             dice_count = int(current_piece[:d_index])
@@ -130,7 +130,9 @@ class EventyrBot(discord.Client):
                 sign = -1
             i = i_next + 1
         pieces_together = ' + '.join(pieces)
-        result = ' '.join([total] + [unknown_values])
+        result = ' '.join([str(total), *unknown_values])
+        if pieces_together == result:
+            return result
         return f'{pieces_together} = {result}'
 
     @tasks.loop(seconds=30)
