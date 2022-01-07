@@ -42,7 +42,7 @@ class EventyrBot(discord.Client):
             return
         if message.guild == None:
             return await self.on_direct_message(message)
-        if self.user in message.mentions and self.on_mention_message(message):
+        if self.user in message.mentions and await self.on_mention_message(message):
             return
         if any(message.content.lower().startswith(f'{roll_word} ') for roll_word in ['rull', 'roll', 'trill']):
             dice_string = message.content[(message.content.find(' ') + 1):].lower()
@@ -72,9 +72,11 @@ class EventyrBot(discord.Client):
             dice_string = raw_message[(raw_message.find(' ') + 1):].lower()
             result = self.roll(dice_string)
             await message.channel.send(result)
-            return
+            return True
         if message.channel.permissions_for(message.author).administrator:
             await self.on_admin_message(message)
+            return True
+        return False
         
     async def on_admin_message(self, message):
         triggered = False
