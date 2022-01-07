@@ -42,7 +42,7 @@ class EventyrBot(discord.Client):
             return
         if message.guild == None:
             return await self.on_direct_message(message)
-        if self.user in message.mentions and await self.on_mention_message(message):
+        if self.user in message.mentions and (await self.on_mention_message(message)):
             return
         if any(message.content.lower().startswith(f'{roll_word} ') for roll_word in ['rull', 'roll', 'trill']):
             dice_string = message.content[(message.content.find(' ') + 1):].lower()
@@ -60,6 +60,13 @@ class EventyrBot(discord.Client):
     
     async def on_direct_message(self, message):
         print(f'{message.author} says {message.content} to me')
+        bot_mention = f'<@!{self.user.id}>'
+        raw_message = message.content.replace(bot_mention, '').strip()
+        if any(raw_message.lower().startswith(f'{roll_word} ') for roll_word in ['rull', 'roll', 'trill']):
+            dice_string = raw_message[(raw_message.find(' ') + 1):].lower()
+            result = self.roll(dice_string)
+            await message.channel.send(result)
+            return True
         if any(message.content.lower().startswith(unsubscription_keyword) for unsubscription_keyword in ['unsub', 'unbind', 'stop', 'slutt', 'disable']):
             await self.unsubscribe_user(message.author)
         elif any(message.content.lower().startswith(subscription_keyword) for subscription_keyword in ['sub', 'start', 'følg', 'enable']):
