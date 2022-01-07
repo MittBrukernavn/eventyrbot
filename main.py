@@ -22,10 +22,13 @@ class EventyrBot(discord.Client):
         self.bound_channels = {737327854186135652 : 737327854186135656}
         self.subscribed_users = {162645711484223489}
         self.songs = {
-            'vesper': 'Vesper, vesper, vesper en liten kobold-kar',
+            'vesper': [
+                'Vesper, vesper, vesper en liten kobold-kar',
+            ],
             'ork': [
                 'En hodeløs ork',
                 'Tok seg en snork',
+            ]
         }
         self.load_state()
         self.last_episode = None
