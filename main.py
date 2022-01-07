@@ -21,6 +21,12 @@ class EventyrBot(discord.Client):
         self.owner_id = 162645711484223489
         self.bound_channels = {737327854186135652 : 737327854186135656}
         self.subscribed_users = {162645711484223489}
+        self.songs = {
+            'vesper': 'Vesper, vesper, vesper en liten kobold-kar',
+            'ork': [
+                'En hodeløs ork',
+                'Tok seg en snork',
+        }
         self.load_state()
         self.last_episode = None
 
@@ -31,15 +37,23 @@ class EventyrBot(discord.Client):
     async def on_message(self, message):
         if message.author == self.user:
             return
+        if message.guild == None:
+            return await self.on_direct_message(message)
+        if self.user in message.mentions and self.on_mention_message(message):
+            return
         if any(message.content.lower().startswith(f'{roll_word} ') for roll_word in ['rull', 'roll', 'trill']):
             dice_string = message.content[(message.content.find(' ') + 1):].lower()
             result = self.roll(dice_string)
             await message.channel.send(result)
             return
-        if message.guild == None:
-            return await self.on_direct_message(message)
-        if self.user in message.mentions:
-            return await self.on_mention_message(message)
+        any_misspellings = False
+        if any (mathien_misspelling in message.content.lower().split() for mathien_misspelling in ['matien', 'silris', 'sylris', 'xilris']):
+            any_misspellings = True
+            await message.channel.send('Han heter faktisk Mathien Xyllris :fire:')
+        if any(mathien_word in message.content.lower().split() for mathien_word in ['mathien', 'xyllris', 'xylris', 'høyalv', 'druid']):
+            await message.channel.send(f'Var det{" forresten" if any_misspellings else ""} noen som sa Mathien Xyllris, høyalv og druid?')
+            return
+        
     
     async def on_direct_message(self, message):
         print(f'{message.author} says {message.content} to me')
@@ -95,7 +109,8 @@ class EventyrBot(discord.Client):
                 n = int(current_piece) * sign
                 is_raw_int = True
                 total += n
-                pieces.append(str(n) if n >= 0 else f'({n})')
+                pieces.append('+' if n >= 0 else '-')
+                pieces.append(str(abs(n)))
             except ValueError:
                 pass
             is_dice_roll = False
@@ -111,7 +126,8 @@ class EventyrBot(discord.Client):
                         for _ in range(dice_count):
                             n = randint(1, dice_type) * sign
                             total += n
-                            pieces.append(str(n) if n >= 0 else f'({n})')
+                            pieces.append('+' if n >= 0 else '-')
+                            pieces.append(str(abs(n)))
                 except ValueError:
                     is_dice_roll = False
             
@@ -120,16 +136,18 @@ class EventyrBot(discord.Client):
             if not is_raw_int and not is_dice_roll:
                 if sign == 1:
                     unknown_values.append(f'+ {current_piece}')
-                    pieces.append(current_piece)
+                    pieces.append('+')
                 else:
                     unknown_values.append(f'- {current_piece}')
-                    pieces.append(f'(-{current_piece})')
+                    pieces.append(f'-')
+                pieces.append(str(current_piece))
             if i_plus < i_minus:
                 sign = 1
             else:
                 sign = -1
             i = i_next + 1
-        pieces_together = ' + '.join(pieces)
+        is_first_positive = len(pieces) >= 1 and pieces[0] == '+'
+        pieces_together = ' '.join(pieces[is_first_positive:])
         result = ' '.join([str(total), *unknown_values])
         if pieces_together == result:
             return result
