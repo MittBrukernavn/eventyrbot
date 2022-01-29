@@ -69,8 +69,14 @@ class EventyrBot(discord.Client):
             return True
         if any(message.content.lower().startswith(unsubscription_keyword) for unsubscription_keyword in ['unsub', 'unbind', 'stop', 'slutt', 'disable']):
             await self.unsubscribe_user(message.author)
-        elif any(message.content.lower().startswith(subscription_keyword) for subscription_keyword in ['sub', 'start', 'følg', 'enable']):
+            return True
+        if any(message.content.lower().startswith(subscription_keyword) for subscription_keyword in ['sub', 'start', 'følg', 'enable']):
             await self.subscribe_user(message.author)
+            return True
+        if message.author.id == self.owner_id:
+            if await self.on_owner_message(message):
+                return True
+        return False
     
     async def on_mention_message(self, message):
         bot_mention = f'<@!{self.user.id}>'
@@ -96,6 +102,13 @@ class EventyrBot(discord.Client):
             await self.bind_channel(message.channel)
             triggered = True
         return triggered
+    
+    async def on_owner_message(self, message):
+        triggered = False
+        if message.content.startswith('eval '):
+            await message.channel.send(eval(message.content[5:]))
+            return True
+        return False
     
     def get_last_episode(self):
         response = request.urlopen(RSS_URL)
@@ -165,7 +178,7 @@ class EventyrBot(discord.Client):
             return result
         return f'{pieces_together} = {result}'
 
-    @tasks.loop(seconds=30)
+    @tasks.loop(minutes=5)
     async def tick(self):
         try:
             last_episode = self.get_last_episode()
