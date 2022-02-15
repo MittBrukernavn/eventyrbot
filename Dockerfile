@@ -7,4 +7,4 @@ RUN pip3 install --no-cache-dir discord
 COPY main.py .
 COPY token.txt .
 
-CMD ["python3", "main.py"]
+CMD ["python3", "-u", "main.py"]

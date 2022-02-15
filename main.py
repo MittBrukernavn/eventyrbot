@@ -202,7 +202,12 @@ class EventyrBot(discord.Client):
         link = last_episode.find('link').text
         update = f'Ny episode ute nå! {title}. Hør på {link}, eller der du hører podcast.'
         await self.notify_all(update)
-        
+    
+    @tick.after_loop
+    async def on_tick_cancel(self):
+        await self.send_to_user_id(self.owner_id, 'Tick ended - attempting restart')
+        self.tick.start()
+    
     async def send_to_user_id(self, user_id, message):
         user = await self.fetch_user(user_id)
         return await user.send(message)
