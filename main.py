@@ -185,7 +185,11 @@ class EventyrBot(discord.Client):
             assert (last_episode is not None)
         except Exception as e:
             print('Failed to get last episode from RSS feed.')
-            print(e.message)
+            print(e)
+            try:
+                print(e.message)
+            except Exception as e:
+                print('No message to display')
             return
         
         # first run:
@@ -205,8 +209,7 @@ class EventyrBot(discord.Client):
     
     @tick.after_loop
     async def on_tick_cancel(self):
-        await self.send_to_user_id(self.owner_id, 'Tick ended - attempting restart')
-        self.tick.start()
+        await self.send_to_user_id(self.owner_id, 'Tick ended - kindly restart it')
     
     async def send_to_user_id(self, user_id, message):
         user = await self.fetch_user(user_id)
