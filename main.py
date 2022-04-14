@@ -183,6 +183,14 @@ class EventyrBot(discord.Client):
     @tasks.loop(minutes=5)
     async def tick(self):
         try:
+            was_live = self.is_live
+            self.is_live = is_live('eventyrtimen')
+            if not was_live and self.is_live:
+                await self.send_to_user_id(self.owner_id, 'Eventyrtimen er nå live! https://www.twitch.tv/eventyrtimen')
+        except Exception as e:
+            print('Failed to get twitch update')
+        
+        try:
             last_episode = self.get_last_episode()
             assert (last_episode is not None)
         except Exception as e:
@@ -209,13 +217,6 @@ class EventyrBot(discord.Client):
         update = f'Ny episode ute nå! {title}. Hør på {link}, eller der du hører podcast.'
         await self.notify_all(update)
 
-        try:
-            was_live = self.is_live
-            self.is_live = is_live('eventyrtimen')
-            if not was_live and self.is_live:
-                await self.send_to_user_id(self.owner_id, 'Eventyrtimen er nå live! https://www.twitch.tv/eventyrtimen')
-        except Exception as e:
-            print('Failed to get twitch update')
     
     @tick.after_loop
     async def on_tick_cancel(self):
