@@ -6,6 +6,8 @@ from xml.etree import ElementTree as ET
 from pickle import load, dump
 from random import randint
 
+from twitch_utils import is_live
+
 RSS_URL = 'https://feeds.soundcloud.com/users/soundcloud:users:593801271/sounds.rss'
 
 def get_last_episode_from_rss(rss_url):
@@ -32,6 +34,7 @@ class EventyrBot(discord.Client):
         }
         self.load_state()
         self.last_episode = None
+        self.is_live = True
 
     async def on_ready(self):
         if not self.tick.is_running():
@@ -104,7 +107,6 @@ class EventyrBot(discord.Client):
         return triggered
     
     async def on_owner_message(self, message):
-        triggered = False
         if message.content.startswith('eval '):
             await message.channel.send(eval(message.content[5:]))
             return True
@@ -206,6 +208,14 @@ class EventyrBot(discord.Client):
         link = last_episode.find('link').text
         update = f'Ny episode ute nå! {title}. Hør på {link}, eller der du hører podcast.'
         await self.notify_all(update)
+
+        try:
+            was_live = self.is_live
+            self.is_live = is_live('eventyrtimen')
+            if not was_live and self.is_live:
+                await self.send_to_user_id(self.owner_id, 'Eventyrtimen er nå live! https://www.twitch.tv/eventyrtimen')
+        except Exception as e:
+            print('Failed to get twitch update')
     
     @tick.after_loop
     async def on_tick_cancel(self):
